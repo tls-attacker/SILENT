@@ -1,4 +1,3 @@
-suppressMessages(library(KernSmooth))
 suppressMessages(library(np))
 suppressMessages(library(robcp))
 suppressMessages(library(Qtools))
