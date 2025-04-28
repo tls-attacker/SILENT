@@ -76,7 +76,7 @@ mu       <- read_numeric_cli("Enter mu (expected size)", default = 2)
 Delta    <- read_numeric_cli("Enter Delta (expected bias)", default = 1)
 p        <- read_numeric_cli("Enter desired detection rate p (e.g., 0.9)", default = 0.9)
 alpha    <- read_numeric_cli("Enter false positive rate alpha (e.g., 0.05)", default = 0.05)
-use_median   <- read_numeric_cli("Do you expect a shift (type 1)?", default = 1)
+#use_median   <- read_numeric_cli("Do you expect a shift (type 1)?", default = 1)
 qstart   <- 0.1  # fixed, or replace with read_numeric_cli(...)
 qend     <- 0.9
 stepsize <- 0.1
@@ -107,20 +107,23 @@ q2 <- compute_quantiles(data2, quant, continuous)
 
 m <- compute_block_size(data1, data2)
 diff <- q1 - q2
-
+n_input <- min(length(data1),length(data2))
 bootstrap_samples <- replicate(
   B,
-  bootstrap_max(data1, data2, length(data1), quant, diff, m, continuous,Delta)
+  bootstrap_max(data1, data2, n_input, quant, diff, m, continuous,Delta)
 )
 
 sigma_sq <- apply(bootstrap_samples, 1, var)
 valid_indices <- which(sigma_sq <= 5 * mean(sigma_sq))
 
-if (use_median==1) {
-  sigma_max <- min(sqrt(sigma_sq)) * sqrt(length(data1))
-} else {
-  sigma_max <- median(sqrt(sigma_sq)) * sqrt(length(data1))
-}
+sigma_max <- c(
+  median(sqrt(sort(sigma_sq)[1:3])) * sqrt(n_input),
+  median(sqrt(sort(sigma_sq)[4:6])) * sqrt(n_input),
+  median(sqrt(sort(sigma_sq)[7:9])) * sqrt(n_input)
+)
+
+
+
 
 q <- qnorm(1 - p, mean = 0, sd = sigma_max)
 
@@ -130,17 +133,18 @@ n_final <- ceiling(max(100, n^2))
 
 # 📢 Final Result
 cat("\n📈  Power Analysis Result\n")
-cat("------------------------------\n")
-cat(sprintf("🎯 Required sample size (n) : %d\n", ceiling(n^2)))
-cat("------------------------------\n")
-if (ceiling(n^2) < 100) {
-  cat("💡 Recommendation: Measure at least", ceiling(n^2), 
-      "samples per group, but recommend:", n_final,"\n\n")
+cat("------------------------------------------\n")
+cat(sprintf("🎯 Required sample size (n):\n"))
+cat(sprintf("   • Minimum : %d\n", ceiling(n[1]^2)))
+cat(sprintf("   • Median  : %d\n", ceiling(n[2]^2)))
+cat(sprintf("   • Maximum : %d\n", ceiling(n[3]^2)))
+cat("------------------------------------------\n")
+
+if (max(ceiling(n^2)) < 100) {
+  cat("💡 Recommendation: Measure at least", ceiling(n[2]^2),
+      "samples per group, but recommend:", n_final, "\n\n")
 } else {
-  cat("💡 Recommendation: Measure at least", ceiling(n^2), "samples per group.\n\n")
+  cat("💡 Recommendation: Measure at least", ceiling(n[2]^2), "samples per group.\n\n")
 }
 
 cat("✅ Analysis complete.\n")
-
-
-  
