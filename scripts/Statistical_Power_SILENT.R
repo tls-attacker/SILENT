@@ -1,6 +1,5 @@
 # Load dependencies (if needed)
 # library(dplyr)  # Example
-
 # Import helper functions
 get_script_dir <- function() {
   args <- commandArgs(trailingOnly = FALSE)
@@ -28,13 +27,51 @@ if (length(args) < 1) {
 }
 
 # --------- READ INPUT FILE ------------
-args <- commandArgs(trailingOnly = TRUE)
 
-if (length(args) < 1) {
-  stop("Please provide the input file as the first argument.")
+
+
+read_numeric_cli <- function(prompt_text, default) {
+  cat(sprintf("%s [default: %s]: ", prompt_text, default))
+  line <- readLines(con = file("stdin"), n = 1)
+  
+  if (line == "") {
+    cat(sprintf("→ Using default value: %s\n", default))
+    return(default)
+  }
+  
+  num <- as.numeric(line)
+  if (is.na(num)) stop(paste0("❌ Invalid input for: ", prompt_text))
+  return(num)
 }
 
-input_file <- toString(args[[1]])
+# Hybrid input mode: expert via CLI or interactive fallback
+args <- commandArgs(trailingOnly = TRUE)
+
+if (length(args) >= 5) {
+  input_file <- args[1]
+  mu         <- as.numeric(args[2])
+  Delta      <- as.numeric(args[3])
+  p          <- as.numeric(args[4])
+  alpha      <- as.numeric(args[5])
+  
+  if (anyNA(c(mu, Delta, p, alpha))) {
+    stop("❌ Invalid numeric values in expert mode arguments.")
+  }
+  
+  cat("🧠 Running in expert mode with parameters from command line...\n")
+  
+} else {
+  if (length(args) < 1) stop("Usage: Rscript script.R input.csv [mu Delta p alpha]")
+  
+  input_file <- args[1]
+  
+  # Interactive fallback
+  mu    <- read_numeric_cli("Enter mu (expected size)", default = 2)
+  Delta <- read_numeric_cli("Enter Delta (expected bias)", default = 1)
+  p     <- read_numeric_cli("Enter desired detection rate p (e.g., 0.9)", default = 0.9)
+  alpha <- read_numeric_cli("Enter false positive rate alpha (e.g., 0.05)", default = 0.05)
+}
+
 
 
 has_header <- function(file) {
@@ -56,26 +93,6 @@ data2 <- data$V2[data$V1 == unique_values[2]]
 cat("Loaded data with", nrow(data), "rows and", ncol(data), "columns\n")
 
 
-read_numeric_cli <- function(prompt_text, default) {
-  cat(sprintf("%s [default: %s]: ", prompt_text, default))
-  line <- readLines(con = file("stdin"), n = 1)
-  
-  if (line == "") {
-    cat(sprintf("→ Using default value: %s\n", default))
-    return(default)
-  }
-  
-  num <- as.numeric(line)
-  if (is.na(num)) stop(paste0("❌ Invalid input for: ", prompt_text))
-  return(num)
-}
-
-
-# Read user inputs with defaults
-mu       <- read_numeric_cli("Enter mu (expected size)", default = 2)
-Delta    <- read_numeric_cli("Enter Delta (expected bias)", default = 1)
-p        <- read_numeric_cli("Enter desired detection rate p (e.g., 0.9)", default = 0.9)
-alpha    <- read_numeric_cli("Enter false positive rate alpha (e.g., 0.05)", default = 0.05)
 #use_median   <- read_numeric_cli("Do you expect a shift (type 1)?", default = 1)
 qstart   <- 0.1  # fixed, or replace with read_numeric_cli(...)
 qend     <- 0.9
@@ -135,9 +152,10 @@ n_final <- ceiling(max(100, n^2))
 cat("\n📈  Power Analysis Result\n")
 cat("------------------------------------------\n")
 cat(sprintf("🎯 Required sample size (n):\n"))
-cat(sprintf("   • Minimum : %d\n", ceiling(n[1]^2)))
-cat(sprintf("   • Median  : %d\n", ceiling(n[2]^2)))
-cat(sprintf("   • Maximum : %d\n", ceiling(n[3]^2)))
+cat(sprintf("   • Minimum : %.0f\n", ceiling(n[1]^2)))
+cat(sprintf("   • Median  : %.0f\n", ceiling(n[2]^2)))
+cat(sprintf("   • Maximum : %.0f\n", ceiling(n[3]^2)))
+
 cat("------------------------------------------\n")
 
 if (max(ceiling(n^2)) < 100) {

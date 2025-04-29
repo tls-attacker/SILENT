@@ -1,7 +1,6 @@
 suppressMessages(library(np))
 suppressMessages(library(robcp))
 suppressMessages(library(Qtools))
-
 # Load external functions
 get_script_dir <- function() {
   args <- commandArgs(trailingOnly = FALSE)
@@ -69,6 +68,8 @@ group1_data <- data$value[data$group == unique_groups[1]]
 group2_data <- data$value[data$group == unique_groups[2]]
 n <- min(length(group1_data), length(group2_data))
 
+start_time <- Sys.time()
+
 # ---- Run the Test ----
 result <- algorithm(
   data1 = group1_data,
@@ -80,20 +81,96 @@ result <- algorithm(
   Delta = Delta
 )
 
-test_info <- result$test_result
+test_info  <- result$test_result
 block_size <- result$block_size
+test_stat  <- test_info$test_stat
+threshold  <- test_info$threshold
+test_adjusted <- test_stat - threshold  # Correct computation
 
-# ---- Prepare Output ----
-test_stat <- if (test_info$test_adjusted < 0) {
-  test_info$test_adjusted
+
+if (!requireNamespace("cli", quietly = TRUE)) install.packages("cli")
+if (!requireNamespace("glue", quietly = TRUE)) install.packages("glue")
+
+library(cli)
+library(glue)
+cli_h2("🗂  Input and Output Paths")
+cli_text(glue("• Input file            : {input_file}"))
+cli_text(glue("• Output folder         : {output_folder}"))
+
+cli_h2("📈 Summary Statistics")
+
+summarize_group <- function(x, group_name) {
+  cli_h3(glue("{group_name} (n = {length(x)})"))
+  
+  summary_x <- summary(x)
+  print(summary_x)
+  
+  cat("\n")  # after summary
+  
+  cat(sprintf("  Standard Deviation : %.2f\n", sd(x)))
+  cat(sprintf("  Interquartile Range: %.2f\n\n", IQR(x)))
+}
+summarize_group(group1_data, glue("Group 1 ({unique_groups[1]})"))
+summarize_group(group2_data, glue("Group 2 ({unique_groups[2]})"))
+
+cli_h1("📊 Robust Quantile Test Summary")
+
+cli_text(glue("• Alpha level (significance) : {alpha}"))
+cli_text(glue("• Number of bootstrap samples: {B}"))
+cli_text(glue("• Delta (minimum detectable difference): {Delta}"))
+cli_text(glue("• Estimated block size (m) : {block_size}"))
+
+cli_h2("🎯 Detailed Test Results")
+
+cli_text(glue(
+  "Test statistic: {round(test_stat, 3)}, ",
+  "Threshold: {round(threshold, 3)}, ",
+  "Difference: {round(test_adjusted, 3)}"
+))
+
+if (test_adjusted > 0) {
+  cli_alert_danger("→ Decision: Rejected null hypothesis (significant difference / timing side-channel discovered)")
 } else {
-  max(unlist(test_info$testi)[test_info$imp_indices])
+  cli_alert_success("→ Decision: Failed to reject null hypothesis (no significant difference / no timing side-channel discovered)")
 }
 
-output_df <- data.frame(
-  test_quantile = test_stat,
-  block_size = block_size
+if (!requireNamespace("jsonlite", quietly = TRUE)) install.packages("jsonlite")
+library(jsonlite)
+end_time <- Sys.time()
+elapsed_time <- difftime(end_time, start_time, units = "secs")
+
+# Create list for JSON
+result_list <- list(
+  input = list(
+    input_file = input_file,
+    alpha = alpha,
+    bootstrap_samples = B,
+    delta = Delta,
+    block_size = block_size
+  ),
+  test_result = list(
+    test_statistic = round(test_stat, 3),
+    threshold = round(threshold, 3),
+    adjusted_statistic = round(test_adjusted, 3),
+    decision = if (test_adjusted > 0) {
+      "Rejected"
+    } else {
+      "Failed to reject"
+    }
+  ),
+  run_info = list(
+    computation_time = as.character(elapsed_time)
+  )
 )
 
-# ---- Write to Output File ----
-write.csv(output_df, file = output_file, row.names = FALSE)
+# Extract base filename without .csv
+base_name <- tools::file_path_sans_ext(basename(input_file))
+
+# Construct JSON output file path
+json_output_file <- file.path(output_folder, paste0(base_name, "_summary_results.json"))
+
+# Then save JSON as usual
+write_json(result_list, path = json_output_file, pretty = TRUE, auto_unbox = TRUE)
+
+cli_alert_success(glue("✅ JSON summary written to {json_output_file}"))
+

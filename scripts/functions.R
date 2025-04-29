@@ -100,7 +100,9 @@ max_test <- function(data1, data2, q1, q2, n, B, alpha, quant, m, continuous, De
   list(
     test_adjusted = test_stat - threshold,
     testi = (test_quantiles - Delta)[common_indices],
-    imp_indices = imp_indices
+    imp_indices = imp_indices,
+    test_stat= test_stat,
+    threshold=threshold
   )
 }
 
