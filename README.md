@@ -5,7 +5,9 @@ Details on SILENT can be found in our [paper](https://arxiv.org/pdf/2504.19821),
 ## Quick Start
 
 ```bash
-TODO
+# Run with default options
+./SILENT.R <alpha> <input CSV> <output folder>
+./Statistical_Power_SILENT.R <input CSV>
 ```
 
 ## Installation
@@ -14,7 +16,7 @@ TODO
 
 SILENT requires:
 - R (https://www.r-project.org/)
-- The following R packages: TODO
+- The following R packages: np, robcp, Qtools
 
 ### Docker
 
@@ -26,6 +28,6 @@ docker build --target silent -f Dockerfile -t silent:silent .
 docker build --target power  -f Dockerfile -t silent:power .
 
 # Run with Docker (mounting current directory)
-docker run --rm -v $(pwd):/data silent:silent --file /data/your_data.csv
-docker run --rm -v $(pwd):/data silent:power --file /data/your_data.csv
+docker run -it --rm -v $(pwd):/data silent:silent <alpha> <input CSV> <output folder>
+docker run -it --rm -v $(pwd):/data silent:power <input CSV>
 ```

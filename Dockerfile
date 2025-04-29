@@ -17,12 +17,13 @@ RUN chmod +x /app/Statistical_Power_SILENT.R
 # Create data directory
 RUN mkdir -p /data
 VOLUME /data
+WORKDIR /data
 
 ####################
 # SILENT-Image
 ####################
 FROM base AS silent
-ENTRYPOINT ["/app/SILENT.R"]
+ENTRYPOINT ["Rscript", "/app/SILENT.R"]
 
 ####################
 # Power-Image
