@@ -4,8 +4,8 @@
 FROM alpine:3.21.3 AS base
 
 # Install dependencies
-RUN apk add R R-dev R-doc g++ libxml2-dev fontconfig-dev harfbuzz-dev fribidi-dev freetype-dev libpng-dev tiff-dev libjpeg
-RUN R -e "options(repos = c(CRAN = 'http://cran.rstudio.com/')); install.packages(c('tidyverse', 'optparse', 'jsonlite', 'crayon', 'np', 'robcp', 'Qtools'), dependencies=TRUE, Ncpus = 10);"
+RUN apk add R R-dev build-base
+RUN R -e "options(repos = c(CRAN = 'http://cran.rstudio.com/')); install.packages(c('cli', 'glue','jsonlite','np', 'robcp', 'Qtools'), dependencies=TRUE, Ncpus = 12);"
 
 # Copy scripts 
 COPY scripts/functions.R /app/functions.R
