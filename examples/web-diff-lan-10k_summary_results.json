@@ -1,0 +1,18 @@
+{
+  "input": {
+    "input_file": "web-diff-lan-10k.csv",
+    "alpha": 0.1,
+    "bootstrap_samples": 1000,
+    "delta": 5,
+    "block_size": 240
+  },
+  "test_result": {
+    "test_statistic": 5.431,
+    "threshold": 2.425,
+    "adjusted_statistic": 3.005,
+    "decision": "Rejected"
+  },
+  "run_info": {
+    "computation_time": "1.52956223487854"
+  }
+}

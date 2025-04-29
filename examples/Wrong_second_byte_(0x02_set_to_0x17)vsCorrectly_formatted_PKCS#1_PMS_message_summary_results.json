@@ -1,0 +1,18 @@
+{
+  "input": {
+    "input_file": "Wrong_second_byte_(0x02_set_to_0x17)vsCorrectly_formatted_PKCS#1_PMS_message.csv",
+    "alpha": 0.1,
+    "bootstrap_samples": 1000,
+    "delta": 5,
+    "block_size": 2122
+  },
+  "test_result": {
+    "test_statistic": 2.303,
+    "threshold": 4.296,
+    "adjusted_statistic": -1.994,
+    "decision": "Failed to reject"
+  },
+  "run_info": {
+    "computation_time": "126.193314552307"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "input": {
+    "input_file": "timing_measurements_1_comparison_-72_72.csv",
+    "alpha": 0.1,
+    "bootstrap_samples": 1000,
+    "delta": 5,
+    "block_size": 38
+  },
+  "test_result": {
+    "test_statistic": 14.422,
+    "threshold": 3.352,
+    "adjusted_statistic": 11.07,
+    "decision": "Rejected"
+  },
+  "run_info": {
+    "computation_time": "0.955164194107056"
+  }
+}

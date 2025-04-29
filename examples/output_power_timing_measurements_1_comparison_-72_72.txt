@@ -1,0 +1,23 @@
+🧠 Running in expert mode with parameters from command line...
+Loaded data with 10000 rows and 2 columns
+
+📊 Parameters Summary
+------------------------------
+✅ mu (expected effect size)     : 100
+✅ Delta (bias threshold)        : 5
+✅ p (detection power)           : 0.990
+✅ alpha (false positive rate)   : 0.010
+✅ Quantile range                : 0.100 to 0.900 (step = 0.100)
+------------------------------
+⚙️  Computing quantiles and bootstrap estimates...
+
+📈  Power Analysis Result
+------------------------------------------
+🎯 Required sample size (n):
+   • Minimum : 50
+   • Median  : 132
+   • Maximum : 871
+------------------------------------------
+💡 Recommendation: Measure at least 132 samples per group.
+
+✅ Analysis complete.
