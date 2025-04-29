@@ -53,51 +53,16 @@ docker run -it --rm -v $(pwd):/data silent:power <input CSV>
 
 ## Input
 
-SILENT supports multiple input formats and automatically detects the separator (comma or semicolon). Below are the supported formats:
+SILENT supports a single input format and automatically detects the separator (comma). Below is the supported format:
 
-**Classic Format**
-
-A CSV file containing two columns. The first column includes labels, such as 'X' and 'Y', while the second column contains the corresponding measurements.
-
-Example: Comma Separator
-
-```
+```csv
 V1,V2
 X,481100
 Y,531296
 ...
 ```
 
-Example: Semicolon Separator
-
-```
-V1;V2
-X;494602
-Y;539770
-...
-```
-
-**Column Format**
-
-A CSV file where each column represents a different measurement series.
-
-Example: Comma Separator
-
-```
-Series1,Series2
-494602,531296
-481100,539770
-...
-```
-
-Example: Semicolon Separator
-
-```
-Series1;Series2
-494602;531296
-481100;539770
-...
-```
+A CSV file containing two columns. The first column includes labels, such as 'X' and 'Y', while the second column contains the corresponding measurements
 
 ## Ouput
 
