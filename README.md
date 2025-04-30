@@ -12,6 +12,35 @@ Details on SILENT can be found in our [paper](https://arxiv.org/pdf/2504.19821),
 ./scripts/Statistical_Power_SILENT.R <input CSV> <mu> <Delta> <p> <alpha>
 ```
 
+## Parameters
+
+### `SILENT.R`
+
+- **`alpha`**: False positive rate (recommended: `0.1`).  
+  Note: The actual false positive rate will be much lower (decaying exponentially fast in the sample size). See the paper for details.
+
+- **`B`**: Number of bootstrap samples (recommended: `1000`).  
+  For smaller `alpha` (e.g., `0.01`), increase `B` accordingly (e.g., use `10000`).
+
+- **`Delta`**: Minimum detectable effect size. (recommended: not too small) 
+  Represents the smallest side-channel difference you consider practically relevant.  
+  Choose a value that is not too small; obviously depends on the application.
+
+### `Statistical_Power_SILENT.R`
+
+- **`mu`**: Expected side-channel size (e.g., `0.02`).  
+  Should be chosen conservatively—avoid overestimating the leakage.
+
+- **`Delta`**: Minimum detectable effect size (same as above).  
+  Used to define the detection threshold.
+
+- **`p`**: Desired detection rate (recommended: `≥ 0.9`).  
+  The probability of detecting a real leakage of size `mu` or larger (true positive rate).  
+  Increase this value if stronger guarantees are required.
+
+- **`alpha`**: False positive rate (same as in `SILENT.R`).
+
+
 ## Installation
 
 Before using SILENT, ensure the following prerequisites are installed:
