@@ -6,10 +6,10 @@ Details on SILENT can be found in our [paper](https://arxiv.org/pdf/2504.19821),
 
 ```bash
 # Run SILENT
-./scripts/SILENT.R <alpha> <input CSV> <output folder>
+./scripts/SILENT.R <alpha> <input CSV> <output folder> <B> <Delta>
 
 # Run the Statistical Power Analysis
-./scripts/Statistical_Power_SILENT.R <input CSV>
+./scripts/Statistical_Power_SILENT.R <input CSV> <mu> <Delta> <p> <alpha>
 ```
 
 ## Installation
@@ -45,10 +45,10 @@ Once the images are built, you can run SILENT using Docker. Make sure to mount t
 
 ```bash
 # Run SILENT
-docker run -it --rm -v $(pwd):/data silent:silent <alpha> <input CSV> <output folder>
+docker run -it --rm -v $(pwd):/data silent:silent <alpha> <input CSV> <output folder> <B> <Delta>
 
 # Run the Statistical Power Analysis
-docker run -it --rm -v $(pwd):/data silent:power <input CSV>
+docker run -it --rm -v $(pwd):/data silent:power <input CSV> <mu> <Delta> <p> <alpha>
 ```
 
 ## Input
