@@ -160,9 +160,9 @@ cat("------------------------------------------\n")
 
 if (max(ceiling(n^2)) < 100) {
   cat("💡 Recommendation: Measure at least", ceiling(n[2]^2),
-      "samples per group, but recommend:", n_final, "\n\n")
+      "samples per group, but recommend:", 2*n_final, "\n\n")
 } else {
-  cat("💡 Recommendation: Measure at least", ceiling(n[2]^2), "samples per group.\n\n")
+  cat("💡 Recommendation: Measure at least", ceiling(2*n[2]^2), "samples per group.\n\n")
 }
 
 cat("✅ Analysis complete.\n")
