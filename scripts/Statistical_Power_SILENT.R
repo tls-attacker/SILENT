@@ -21,20 +21,18 @@ get_script_dir <- function() {
 script_dir <- get_script_dir()
 source(file.path(script_dir, "functions.R"))
 
-# Check file argument is present
-if (length(args) < 1) {
-  stop("Usage: Rscript script.R <input_file.csv>")
-}
-
 # --------- READ INPUT FILE ------------
 
 
 
+# One connection for all prompts: opening file("stdin") per prompt leaks
+# connections and can drop piped input that was already buffered.
+stdin_con <- file("stdin")
 read_numeric_cli <- function(prompt_text, default) {
   cat(sprintf("%s [default: %s]: ", prompt_text, default))
-  line <- readLines(con = file("stdin"), n = 1)
+  line <- readLines(con = stdin_con, n = 1)
   
-  if (line == "") {
+  if (length(line) == 0 || line == "") {
     cat(sprintf("→ Using default value: %s\n", default))
     return(default)
   }
@@ -88,6 +86,9 @@ colnames(data) <- c("V1", "V2")
 # Get unique values from data$V1
 unique_values <- unique(data$V1)
 
+if (length(unique_values) != 2) {
+  stop("Exactly two groups required. Found: ", toString(unique_values))
+}
 data1 <- data$V2[data$V1 == unique_values[1]]
 data2 <- data$V2[data$V1 == unique_values[2]]
 cat("Loaded data with", nrow(data), "rows and", ncol(data), "columns\n")
@@ -98,15 +99,15 @@ qstart   <- 0.1  # fixed, or replace with read_numeric_cli(...)
 qend     <- 0.9
 stepsize <- 0.1
 
-if (Delta > mu) {
-  stop("Delta is greater than mu. We cannot detect a difference.")
+if (Delta >= mu) {
+  stop("Delta must be smaller than mu, otherwise the leak cannot be detected.")
 }
 
 # 🧾 Display summary before computation
 cat("\n📊 Parameters Summary\n")
 cat("------------------------------\n")
-cat(sprintf("✅ mu (expected effect size)     : %.0f\n", mu))
-cat(sprintf("✅ Delta (bias threshold)        : %.0f\n", Delta))
+cat(sprintf("✅ mu (expected effect size)     : %g\n", mu))
+cat(sprintf("✅ Delta (bias threshold)        : %g\n", Delta))
 cat(sprintf("✅ p (detection power)           : %.3f\n", p))
 cat(sprintf("✅ alpha (false positive rate)   : %.3f\n", alpha))
 cat(sprintf("✅ Quantile range                : %.3f to %.3f (step = %.3f)\n", qstart, qend, stepsize))

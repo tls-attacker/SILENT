@@ -31,8 +31,8 @@ if (length(args) < 3) {
 }
 
 alpha <- as.numeric(args[1])
-if (is.na(alpha) || alpha >= 1) {
-  stop("Alpha should be a numeric value less than 1.")
+if (is.na(alpha) || alpha <= 0 || alpha >= 1) {
+  stop("Alpha should be a numeric value in (0, 1).")
 }
 
 input_file <- args[2]
@@ -45,7 +45,14 @@ Delta <- if (length(args) >= 5) as.numeric(args[5]) else 100
 quant_start <- if (length(args) >= 6) as.numeric(args[6]) else 0.05
 quant_end <- if (length(args) >= 7) as.numeric(args[7]) else 0.95
 quant_step <- if (length(args) >= 8) as.numeric(args[8]) else 0.01
+if (is.na(B) || B < 2 || B != round(B)) stop("B should be an integer >= 2.")
+if (is.na(Delta) || Delta < 0) stop("Delta should be a non-negative number.")
+if (anyNA(c(quant_start, quant_end, quant_step)) || quant_start <= 0 || quant_end >= 1 ||
+    quant_start > quant_end || quant_step <= 0) {
+  stop("Quantiles should satisfy 0 < start <= end < 1 and step > 0.")
+}
 quantiles <- seq(quant_start, quant_end, by = quant_step)
+dir.create(output_folder, recursive = TRUE, showWarnings = FALSE)
 
 # ---- Detect Header and Read Input Data ----
 has_header <- function(file_path) {
