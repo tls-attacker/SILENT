@@ -26,12 +26,21 @@ is_continuous <- function(data1, data2) {
 
 # Main algorithm to perform robust quantile comparison test
 algorithm <- function(data1, data2, n, B, alpha, quant, Delta) {
+  # Quantiles and block-size estimation need variation in both groups
+  # (midquantile() fails outright on a single distinct value).
+  if (length(unique(data1)) < 2 || length(unique(data2)) < 2) {
+    stop("Each group needs at least two distinct measurement values; ",
+         "a constant group cannot be tested.")
+  }
   continuous <- is_continuous(data1, data2)
   
   q1 <- compute_quantiles(data1, quant, continuous)
   q2 <- compute_quantiles(data2, quant, continuous)
   
-  block_size <- compute_block_size(data1, data2)
+  # A block can't be longer than the series the bootstrap draws blocks from
+  # (n, or the m-out-of-n subsample n^(2/3) for discrete data).
+  block_size <- min(compute_block_size(data1, data2),
+                    if (continuous) n else floor(n^(2 / 3)))
   
   result <- max_test(
     data1, data2, q1, q2, n, B, alpha, quant,
@@ -50,10 +59,13 @@ max_test <- function(data1, data2, q1, q2, n, B, alpha, quant, m, continuous, De
   test_quantiles <- abs(diff)
   
   
-  bootstrap_samples <- replicate(B,
-              bootstrap_max(data1, data2, n, quant, diff, m, continuous, Delta)
+  # One row per quantile, one column per resample. replicate() returns a plain
+  # vector for a single quantile, which apply(..., 1, ...) can't handle.
+  bootstrap_samples <- matrix(
+    replicate(B, bootstrap_max(data1, data2, n, quant, diff, m, continuous, Delta)),
+    nrow = length(quant)
   )
- 
+
   sigma_sq <- apply(bootstrap_samples, 1, var)
   bootstrap_samples <- bootstrap_samples / sqrt(sigma_sq)
   
@@ -77,22 +89,29 @@ max_test <- function(data1, data2, q1, q2, n, B, alpha, quant, m, continuous, De
     testi[i] <- adjustment / sqrt(sigma_sq[i])
   }
   
-  valid_indices <- which(sigma_sq <= 5 * mean(sigma_sq))
+  # Quantiles whose bootstrap variance is zero (ties, constant data) carry no
+  # information and would divide by zero below.
+  valid_indices <- which(sigma_sq > 0 & sigma_sq <= 5 * mean(sigma_sq))
+  if (length(valid_indices) == 0) {
+    stop("All quantiles have zero bootstrap variance (are the measurements constant?); ",
+         "the test is undefined for this data.")
+  }
   crit_condition <- test_quantiles[valid_indices] / sqrt(sigma_sq[valid_indices]) +
     30 * sqrt(log(n)^(3/2) / n) >= Delta / sqrt(sigma_sq[valid_indices])
   
-  common_indices <- if (length(crit_condition) > 0) {
+  # Fall back to all valid quantiles when none is close enough to Delta. Checking
+  # length() here was always TRUE, so the fallback never ran: the selection was
+  # empty and max() gave -Inf, i.e. a NaN decision for large Delta.
+  common_indices <- if (any(crit_condition)) {
     valid_indices[crit_condition]
   } else {
     valid_indices
   }
   
   test_stat <- max(testi[common_indices])
-  max_boot <- if (length(common_indices) == 1) {
-    bootstrap_samples
-  } else {
-    apply(bootstrap_samples[common_indices, ], 2, max)
-  }
+  # drop = FALSE keeps a 1 x B matrix for a single index; the old special case
+  # took the maximum over every quantile's samples instead of that one row.
+  max_boot <- apply(bootstrap_samples[common_indices, , drop = FALSE], 2, max)
   
   threshold <- quantile(max_boot, 1 - alpha)
   imp_indices <- which(testi[common_indices] >= threshold)
