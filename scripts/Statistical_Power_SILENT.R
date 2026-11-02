@@ -133,10 +133,14 @@ bootstrap_samples <- replicate(
 sigma_sq <- apply(bootstrap_samples, 1, var)
 valid_indices <- which(sigma_sq <= 5 * mean(sigma_sq))
 
+# Per-observation sd. The continuous bootstrap statistic is the raw quantile
+# difference (sd ~ sigma / sqrt(n)); the discrete one is already scaled by
+# sqrt(m1), so scaling it by sqrt(n) again inflated n.
+scale <- if (continuous) sqrt(n_input) else 1
 sigma_max <- c(
-  median(sqrt(sort(sigma_sq)[1:3])) * sqrt(n_input),
-  median(sqrt(sort(sigma_sq)[4:6])) * sqrt(n_input),
-  median(sqrt(sort(sigma_sq)[7:9])) * sqrt(n_input)
+  median(sqrt(sort(sigma_sq)[1:3])) * scale,
+  median(sqrt(sort(sigma_sq)[4:6])) * scale,
+  median(sqrt(sort(sigma_sq)[7:9])) * scale
 )
 
 
@@ -144,7 +148,9 @@ sigma_max <- c(
 
 q <- qnorm(1 - p, mean = 0, sd = sigma_max)
 
-n <- (q / sigma_max - (qnorm(1 - alpha) * sigma_max)) / (mu - Delta)
+# Power p at effect mu: sqrt(n) (mu - Delta) / sigma = z_{1-alpha} - z_{1-p}, and
+# q = sigma * z_{1-p}. (q / sigma_max dropped sigma from the z_p term.)
+n <- (qnorm(1 - alpha) * sigma_max - q) / (mu - Delta)
 
 n_final <- ceiling(max(100, n^2))
 
